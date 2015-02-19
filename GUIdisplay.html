@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>Screen over WebSockets</title>
+<body>
+</body>
+<script>
+  "use strict";
+
+  // -- Create Canvas
+  var canvas = document.createElement("CANVAS");
+  canvas.width = canvas.height = GUI_SCREEN_SIZE;
+  document.body.appendChild(canvas);
+  var ctx = canvas.getContext('2d');
+  // --
+
+  // -- Initialise ArrayBuffers
+  var imagedata = ctx.getImageData(0,0,canvas.width, canvas.height);
+  var offset = function(x,y) {return (y * canvas.width + x) * 4;}
+  var plotPacket = new ArrayBuffer(6);
+  var plotPacketData = new Uint8Array(plotPacket);
+  // --
+
+  // -- Establish WebSocket
+  var ws = new WebSocket("ws://GUI_IP/", "single-pixel-GUI-protocol");
+  ws.binaryType = 'arraybuffer';
+  ws.onopen = function() {ws.send("GUI Ready");};
+  ws.onmessage = function(e) {
+    plotPacketData = new Uint8Array(e.data);
+    var xHi = plotPacketData[0];
+    var xLo = plotPacketData[1];
+    var yHi = plotPacketData[2];
+    var yLo = plotPacketData[3];
+    var R = plotPacketData[4];
+    var G = plotPacketData[5];
+    var B = plotPacketData[6];
+    var A = plotPacketData[7];
+    var x = xHi * 256 + xLo;
+    var y = yHi * 256 + yLo;
+    imagedata.data[offset(x,y) + 0] = R;
+    imagedata.data[offset(x,y) + 1] = G;
+    imagedata.data[offset(x,y) + 2] = B;
+    imagedata.data[offset(x,y) + 3] = A;
+  };
+  // --
+
+  // -- Refresh screen as fast as can draw
+  function refresh(){
+    ctx.putImageData(imagedata,0,0);
+    window.requestAnimationFrame(refresh);
+  }
+  window.requestAnimationFrame(refresh);
+  // --
+
+</script>
+
+</head>
+</html>
