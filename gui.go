@@ -131,7 +131,7 @@ func wsWrite(plotPacket [8]byte) {
 
 // -- Setup
 func init() {
-	htmlB, err := ioutil.ReadFile("gui/GUIdisplay.html")
+	htmlB, err := ioutil.ReadFile("../GUIdisplay.html") // Relative from where running the main app from. Assumes sub dir of gui
 	if err != nil {
 		panic(err)
 	}
