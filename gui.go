@@ -29,11 +29,11 @@ func Launch() {
 	// -- Set & Announce multicore
 	cpu := runtime.NumCPU()
 	runtime.GOMAXPROCS(cpu)
-	fmt.Printf("\nThere are %d CPU cores available. Allocating %d CPU cores for our purposes...\n", cpu, runtime.GOMAXPROCS(-1))
+	fmt.Printf("\nThere are %d CPU cores available. Allocating %d CPU cores for our purposes.\n", cpu, runtime.GOMAXPROCS(-1))
 	// --
 
 	// -- Listen & serve the GUIdisplay
-	fmt.Println("\nWaiting for Display.... Please navigate to " + IP + " to commence.")
+	fmt.Println("\nWaiting for Display : Please navigate to " + IP + " to commence....")
 	listener, _ := net.Listen("tcp", IP)
 	for webSocReady := false; webSocReady != true; {
 		tcpConn, _ = listener.Accept()
@@ -46,9 +46,12 @@ func Launch() {
 
 // -- Expose runtime API
 func Plot(x int, y int, r uint8, g uint8, b uint8, a uint8) {
-	wsWrite([8]byte{hiByte(x), lowByte(x), hiByte(y), lowByte(y), r, g, b, a})
+	wsFrame := []byte{byte(1*128 + 1*2), 9} // FIN bit + Binary Type
+	tcpConn.Write(append([]byte{wsFrame[0], wsFrame[1]}, []byte{2, hiByte(x), lowByte(x), hiByte(y), lowByte(y), r, g, b, a}...))
 }
 func FillRect(x int, y int, w int, h int, r uint8, g uint8, b uint8, a uint8) {
+	wsFrame := []byte{byte(1*128 + 1*2), 13} // FIN bit + Binary Type
+	tcpConn.Write(append([]byte{wsFrame[0], wsFrame[1]}, []byte{4, hiByte(x), lowByte(x), hiByte(y), lowByte(y), hiByte(w), lowByte(w), hiByte(h), lowByte(h), r, g, b, a}...))
 }
 func Circle(x int, y int, radius int, r uint8, g uint8, b uint8, a uint8) {
 
@@ -124,9 +127,9 @@ func lowByte(i int) uint8 {
 func hiByte(i int) uint8 {
 	return uint8((i & 0xff00) >> 8)
 }
-func wsWrite(plotPacket [8]byte) {
-	wsFrame := []byte{byte(1*128 + 1*2), 8} // FIN bit + Binary Type
-	tcpConn.Write([]byte{wsFrame[0], wsFrame[1], plotPacket[0], plotPacket[1], plotPacket[2], plotPacket[3], plotPacket[4], plotPacket[5], plotPacket[6], plotPacket[7]})
+func wsWrite(guiPacket [9]byte) {
+	wsFrame := []byte{byte(1*128 + 1*2), 9} // FIN bit + Binary Type
+	tcpConn.Write([]byte{wsFrame[0], wsFrame[1], guiPacket[0], guiPacket[1], guiPacket[2], guiPacket[3], guiPacket[4], guiPacket[5], guiPacket[6], guiPacket[7], guiPacket[8]})
 }
 
 // -- Setup

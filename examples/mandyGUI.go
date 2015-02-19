@@ -3,27 +3,35 @@ package main
 import (
 	"fmt"
 	"github.com/danhouldsworth/gui"
+	"time"
 )
 
 var (
-	screenSize = 1 << 11 // Stick to a power of 2, makes box division safer.
-	maxDwell   = 100     //
+	screenSize = 1 << 10 // Stick to a power of 2, makes box division safer.
+	maxDwell   = 1000    //
 	area       = 0
 )
 
 func main() {
 	gui.Screen(screenSize)
+	gui.Address("10.1.0.187:8888")
 	gui.Launch()
 
-	fmt.Printf("\nRunning the Mandy calc for Screen : %d x %d to depth of %d...\n", screenSize, screenSize, maxDwell)
-	go mandy(0, screenSize-1, 0, screenSize-1)
+	fmt.Printf("\nRunning the Mandy calc for Screen : %d x %d to depth of %d. Progress : xxx.x%%", screenSize, screenSize, maxDwell)
 
+	go mandy(0, screenSize-1, 0, screenSize-1)
 	progressTracker()
-	fmt.Scanln() // Press Enter to abort
+
+	fmt.Println("\nDone!")
 }
 
 func progressTracker() {
-
+	time.Sleep(time.Millisecond * 100)
+	progress := ratio(area, screenSize*screenSize)
+	fmt.Printf("\b\b\b\b\b\b%5.1f%%", 100*progress)
+	if progress < .999999999 {
+		progressTracker()
+	}
 }
 
 func mandy(left, right, top, bottom int) {
@@ -67,10 +75,10 @@ func mandy(left, right, top, bottom int) {
 		}
 	}
 	if colourBlock == true {
-		gui.FillRect(left, top, right, bottom, byte(firstColour%64), byte(firstColour%16), byte(firstColour%2), 255-byte(firstColour%256))
-		area += (right - left) * (bottom - top)
+		gui.FillRect(left, top, right-left, bottom-top, byte(firstColour%64), byte(firstColour%16), byte(firstColour%2), 255-byte(firstColour%256))
+		area += (right - left + 1) * (bottom - top + 1)
 	} else {
-		area += 2*(right-left) + (bottom - top)
+		area += 2 * (right - left + bottom - top)
 	}
 }
 

@@ -16,8 +16,9 @@
   // -- Initialise ArrayBuffers
   var imagedata = ctx.getImageData(0,0,canvas.width, canvas.height);
   var offset = function(x,y) {return (y * canvas.width + x) * 4;}
-  var plotPacket = new ArrayBuffer(6);
-  var plotPacketData = new Uint8Array(plotPacket);
+  // var guiPacket = new ArrayBuffer(9);
+  // var guiPacketData = new Uint8Array(guiPacket);
+  // var pixel = ctx.createImageData(1,1);
   // --
 
   // -- Establish WebSocket
@@ -25,21 +26,58 @@
   ws.binaryType = 'arraybuffer';
   ws.onopen = function() {ws.send("GUI Ready");};
   ws.onmessage = function(e) {
-    plotPacketData = new Uint8Array(e.data);
-    var xHi = plotPacketData[0];
-    var xLo = plotPacketData[1];
-    var yHi = plotPacketData[2];
-    var yLo = plotPacketData[3];
-    var R = plotPacketData[4];
-    var G = plotPacketData[5];
-    var B = plotPacketData[6];
-    var A = plotPacketData[7];
-    var x = xHi * 256 + xLo;
-    var y = yHi * 256 + yLo;
-    imagedata.data[offset(x,y) + 0] = R;
-    imagedata.data[offset(x,y) + 1] = G;
-    imagedata.data[offset(x,y) + 2] = B;
-    imagedata.data[offset(x,y) + 3] = A;
+    var guiPacketData = new Uint8Array(e.data);
+    var cmd = guiPacketData[0] & 7;
+    switch (cmd) {
+      case 2:
+        var xHi = guiPacketData[1];
+        var xLo = guiPacketData[2];
+        var yHi = guiPacketData[3];
+        var yLo = guiPacketData[4];
+        var R = guiPacketData[5];
+        var G = guiPacketData[6];
+        var B = guiPacketData[7];
+        var A = guiPacketData[8];
+        // pixel.data[0] = guiPacketData[5];
+        // pixel.data[1] = guiPacketData[6];
+        // pixel.data[2] = guiPacketData[7];
+        // pixel.data[3] = guiPacketData[8];
+        var x = xHi * 256 + xLo;
+        var y = yHi * 256 + yLo;
+        // ctx.putImageData(pixel,x,y);
+        imagedata.data[offset(x,y) + 0] = R;
+        imagedata.data[offset(x,y) + 1] = G;
+        imagedata.data[offset(x,y) + 2] = B;
+        imagedata.data[offset(x,y) + 3] = A;
+        break;
+      case 4:
+        var xHi = guiPacketData[1];
+        var xLo = guiPacketData[2];
+        var yHi = guiPacketData[3];
+        var yLo = guiPacketData[4];
+        var wHi = guiPacketData[5];
+        var wLo = guiPacketData[6];
+        var hHi = guiPacketData[7];
+        var hLo = guiPacketData[8];
+        var R = guiPacketData[9];
+        var G = guiPacketData[10];
+        var B = guiPacketData[11];
+        var A = guiPacketData[12];
+        var x = xHi * 256 + xLo;
+        var y = yHi * 256 + yLo;
+        var w = wHi * 256 + wLo;
+        var h = hHi * 256 + hLo;
+        for (var i = x; i <= x+w; i++){
+          for (var j = y; j <= y+h; j++) {
+            imagedata.data[offset(i,j) + 0] = R;
+            imagedata.data[offset(i,j) + 1] = G;
+            imagedata.data[offset(i,j) + 2] = B;
+            imagedata.data[offset(i,j) + 3] = A;
+          }
+        }
+        break;
+      default:
+    }
   };
   // --
 
