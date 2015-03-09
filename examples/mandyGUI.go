@@ -3,33 +3,38 @@ package main
 import (
 	"fmt"
 	"github.com/danhouldsworth/gui"
+	"os/exec"
 	"time"
 )
 
+// 256@1000 = 51518 packets, 1024@1000 = 496776, 1024@100000 = 497230, 1024@1<<20 =497230
 var (
-	screenSize = 1 << 10 // Stick to a power of 2, makes box division safer.
-	maxDwell   = 1000    //
+	screenSize = 1 << 9  // Stick to a power of 2, makes box division safer.
+	maxDwell   = 1 << 10 //
 	area       = 0
 )
 
 func main() {
 	gui.Screen(screenSize)
-	gui.Address("10.1.0.187:8888")
+	// gui.Address("10.1.0.187:8888")
 	gui.Launch()
-
+	gui.Wipe()
 	fmt.Printf("\nRunning the Mandy calc for Screen : %d x %d to depth of %d. Progress : xxx.x%%", screenSize, screenSize, maxDwell)
 
 	go mandy(0, screenSize-1, 0, screenSize-1)
 	progressTracker()
 
 	fmt.Println("\nDone!")
+	exec.Command("bash", "-c", "osascript -e 'tell app \"System Events\" to display dialog \"Hello World\"';say 'Hello, world!'").Run()
+	gui.Wipe()
+	fmt.Scanln() // Wait for key in case WebSocket buffering
 }
 
 func progressTracker() {
 	time.Sleep(time.Millisecond * 100)
 	progress := ratio(area, screenSize*screenSize)
 	fmt.Printf("\b\b\b\b\b\b%5.1f%%", 100*progress)
-	if progress < .999999999 {
+	if area < screenSize*screenSize {
 		progressTracker()
 	}
 }

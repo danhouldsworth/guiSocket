@@ -45,16 +45,32 @@ func Launch() {
 // --
 
 // -- Expose runtime API
+func Wipe() {
+	wsFrame := byte(1*128 + 1*2) // Simplified : FIN bit & Binary Type
+	wsPayload := byte(1)
+	guiCmd := byte(0 + 1<<3)
+	tcpConn.Write([]byte{wsFrame, wsPayload, guiCmd})
+}
 func Plot(x int, y int, r uint8, g uint8, b uint8, a uint8) {
-	wsFrame := []byte{byte(1*128 + 1*2), 9} // FIN bit + Binary Type
-	tcpConn.Write(append([]byte{wsFrame[0], wsFrame[1]}, []byte{2, hiByte(x), lowByte(x), hiByte(y), lowByte(y), r, g, b, a}...))
+	wsFrame := byte(1*128 + 1*2) // Simplified : FIN bit & Binary Type
+	wsPayload := byte(9)
+	guiCmd := byte(2 + 1<<3)
+	guiData := []byte{hiByte(x), lowByte(x), hiByte(y), lowByte(y), r, g, b, a}
+	tcpConn.Write(append([]byte{wsFrame, wsPayload, guiCmd}, guiData...))
 }
 func FillRect(x int, y int, w int, h int, r uint8, g uint8, b uint8, a uint8) {
-	wsFrame := []byte{byte(1*128 + 1*2), 13} // FIN bit + Binary Type
-	tcpConn.Write(append([]byte{wsFrame[0], wsFrame[1]}, []byte{4, hiByte(x), lowByte(x), hiByte(y), lowByte(y), hiByte(w), lowByte(w), hiByte(h), lowByte(h), r, g, b, a}...))
+	wsFrame := byte(1*128 + 1*2) // Simplified : FIN bit & Binary Type
+	wsPayload := byte(13)
+	guiCmd := byte(4 + 1<<3)
+	guiData := []byte{hiByte(x), lowByte(x), hiByte(y), lowByte(y), hiByte(w), lowByte(w), hiByte(h), lowByte(h), r, g, b, a}
+	tcpConn.Write(append([]byte{wsFrame, wsPayload, guiCmd}, guiData...))
 }
 func Circle(x int, y int, radius int, r uint8, g uint8, b uint8, a uint8) {
-
+	wsFrame := byte(1*128 + 1*2) // Simplified : FIN bit & Binary Type
+	wsPayload := byte(11)
+	guiCmd := byte(5 + 1<<3)
+	guiData := []byte{hiByte(x), lowByte(x), hiByte(y), lowByte(y), hiByte(radius), lowByte(radius), r, g, b, a}
+	tcpConn.Write(append([]byte{wsFrame, wsPayload, guiCmd}, guiData...))
 }
 
 // add an extra byte to the protocol packet using 3 bits for the graphic command :

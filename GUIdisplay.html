@@ -16,8 +16,8 @@
   // -- Initialise ArrayBuffers
   var imagedata = ctx.getImageData(0,0,canvas.width, canvas.height);
   var offset = function(x,y) {return (y * canvas.width + x) * 4;}
-  // var guiPacket = new ArrayBuffer(9);
-  // var guiPacketData = new Uint8Array(guiPacket);
+  var counter = 0;
+  var updateQued = false;
   // var pixel = ctx.createImageData(1,1);
   // --
 
@@ -26,67 +26,87 @@
   ws.binaryType = 'arraybuffer';
   ws.onopen = function() {ws.send("GUI Ready");};
   ws.onmessage = function(e) {
+    counter++;
     var guiPacketData = new Uint8Array(e.data);
     var cmd = guiPacketData[0] & 7;
+    var quantity = guiPacketData[0] >> 3;
+    var packetSize = 0;
     switch (cmd) {
-      case 2:
-        var xHi = guiPacketData[1];
-        var xLo = guiPacketData[2];
-        var yHi = guiPacketData[3];
-        var yLo = guiPacketData[4];
-        var R = guiPacketData[5];
-        var G = guiPacketData[6];
-        var B = guiPacketData[7];
-        var A = guiPacketData[8];
-        // pixel.data[0] = guiPacketData[5];
-        // pixel.data[1] = guiPacketData[6];
-        // pixel.data[2] = guiPacketData[7];
-        // pixel.data[3] = guiPacketData[8];
-        var x = xHi * 256 + xLo;
-        var y = yHi * 256 + yLo;
-        // ctx.putImageData(pixel,x,y);
-        imagedata.data[offset(x,y) + 0] = R;
-        imagedata.data[offset(x,y) + 1] = G;
-        imagedata.data[offset(x,y) + 2] = B;
-        imagedata.data[offset(x,y) + 3] = A;
+      case 0: // Wipe
+        canvas.width = canvas.width;
+        imagedata = ctx.getImageData(0,0,canvas.width, canvas.height);
+        console.log("Counter = " + counter);
         break;
-      case 4:
-        var xHi = guiPacketData[1];
-        var xLo = guiPacketData[2];
-        var yHi = guiPacketData[3];
-        var yLo = guiPacketData[4];
-        var wHi = guiPacketData[5];
-        var wLo = guiPacketData[6];
-        var hHi = guiPacketData[7];
-        var hLo = guiPacketData[8];
-        var R = guiPacketData[9];
-        var G = guiPacketData[10];
-        var B = guiPacketData[11];
-        var A = guiPacketData[12];
-        var x = xHi * 256 + xLo;
-        var y = yHi * 256 + yLo;
-        var w = wHi * 256 + wLo;
-        var h = hHi * 256 + hLo;
-        for (var i = x; i <= x+w; i++){
-          for (var j = y; j <= y+h; j++) {
-            imagedata.data[offset(i,j) + 0] = R;
-            imagedata.data[offset(i,j) + 1] = G;
-            imagedata.data[offset(i,j) + 2] = B;
-            imagedata.data[offset(i,j) + 3] = A;
+      case 1: // Move
+        break;
+      case 2: // Plot
+        packetSize = 8;
+        for (var packetIndex = 0; packetIndex < quantity; packetIndex++){
+          var xHi = guiPacketData[1 + packetIndex * packetSize];
+          var xLo = guiPacketData[2 + packetIndex * packetSize];
+          var yHi = guiPacketData[3 + packetIndex * packetSize];
+          var yLo = guiPacketData[4 + packetIndex * packetSize];
+          var R = guiPacketData[5 + packetIndex * packetSize];
+          var G = guiPacketData[6 + packetIndex * packetSize];
+          var B = guiPacketData[7 + packetIndex * packetSize];
+          var A = guiPacketData[8 + packetIndex * packetSize];
+          var x = xHi * 256 + xLo;
+          var y = yHi * 256 + yLo;
+          imagedata.data[offset(x,y) + 0] = R;
+          imagedata.data[offset(x,y) + 1] = G;
+          imagedata.data[offset(x,y) + 2] = B;
+          imagedata.data[offset(x,y) + 3] = A;
+        }
+        break;
+      case 3: // DrawTo
+        break;
+      case 4: // FillRect
+        packetSize = 12;
+        for (var packetIndex = 0; packetIndex < quantity; packetIndex++){
+          var xHi = guiPacketData[1 + packetIndex * packetSize];
+          var xLo = guiPacketData[2 + packetIndex * packetSize];
+          var yHi = guiPacketData[3 + packetIndex * packetSize];
+          var yLo = guiPacketData[4 + packetIndex * packetSize];
+          var wHi = guiPacketData[5 + packetIndex * packetSize];
+          var wLo = guiPacketData[6 + packetIndex * packetSize];
+          var hHi = guiPacketData[7 + packetIndex * packetSize];
+          var hLo = guiPacketData[8 + packetIndex * packetSize];
+          var R = guiPacketData[9 + packetIndex * packetSize];
+          var G = guiPacketData[10 + packetIndex * packetSize];
+          var B = guiPacketData[11 + packetIndex * packetSize];
+          var A = guiPacketData[12 + packetIndex * packetSize];
+          var x = xHi * 256 + xLo;
+          var y = yHi * 256 + yLo;
+          var w = wHi * 256 + wLo;
+          var h = hHi * 256 + hLo;
+          for (var i = x; i <= x+w; i++){
+            for (var j = y; j <= y+h; j++) {
+              imagedata.data[offset(i,j) + 0] = R;
+              imagedata.data[offset(i,j) + 1] = G;
+              imagedata.data[offset(i,j) + 2] = B;
+              imagedata.data[offset(i,j) + 3] = A;
+            }
           }
         }
         break;
+      case 5: // Circle
+        break;
+      case 6: // ImageWrite
+        break;
+      case 7: // Reserved
+        break;
       default:
     }
+    if (updateQued == false) {window.requestAnimationFrame(refresh);updateQued = true;}
+    // window.requestAnimationFrame(refresh);
   };
   // --
 
   // -- Refresh screen as fast as can draw
   function refresh(){
     ctx.putImageData(imagedata,0,0);
-    window.requestAnimationFrame(refresh);
+    updateQued = false;
   }
-  window.requestAnimationFrame(refresh);
   // --
 
 </script>
