@@ -38,22 +38,14 @@ and then you will be prompted to navigate a browser to the IP set (eg ```127.0.0
 
     Btye 2+ : Arguments as defined above. Note that 16-bit numbers are passed as high-byte, low-byte
 
+Use of ccc for multiple commands of the same type, enables efficient use of bandwidth by saving on Websocket, TCP, IP, Ethernet payloads.
+
 
 #Customisation
 
 The HTML viewer is parsed and served from ```GUIdisplay.html``` and can be easily customised.
 
-// add an extra byte to the protocol packet using 3 bits for the graphic command :
-// 0 - wipe screen
-// 1 - move x,y
-// 2 - plot x,y,c
-// 3 - drawTo x,y,c
-// 4 - rectangle x,y,width,height,c
-// 5 - circle x,y,r,c
-// 6 - imageWrite x,y,width,height,data
-// 7 - reserved (or maybe text x,y,c,text)
 
-// Then use the other 5bits for the number of graphic packets in this WebSocket payload. That will eliminate a huge amount of overhead (on top of each WebSocket frame, there will be TCP headers added, then IP headers, then Ethernet headers...)
-
-// OR could use the 5 bits as bit-flags. Say write method : XOR v Overwrite, Relative vs Absolute coords, etc...
-// We'd only need 1 bit for payload length. If its set, then look to next byte for payload length (2-255) otherwise assume single packet.
+#Future roadmap
+Alternatively could use the 5 bits as bit-flags. Say write method : XOR v Overwrite, Relative vs Absolute coords, etc...
+We'd only need 1 bit for payload length. If its set, then look to next byte for payload length (2-255) otherwise assume single packet.
