@@ -22,7 +22,7 @@
   // --
 
   // -- Establish WebSocket
-  var ws = new WebSocket("ws://GUI_IP/", "single-pixel-GUI-protocol");
+  var ws = new WebSocket("ws://GUI_IP/", "guiSocket-protocol");
   ws.binaryType = 'arraybuffer';
   ws.onopen = function() {ws.send("GUI Ready");};
   ws.onmessage = function(e) {

@@ -6,15 +6,54 @@ See example/mandyGUI.go
 
 Run with
 
+    cd example
     go run mandyGUI.go
 
-and then navigate to ```127.0.0.1:8888``` in browser.
+and then you will be prompted to navigate a browser to the IP set (eg ```127.0.0.1:8888``` ).
 
 #API
-    // X,Y,Width,Height : 16bit coords
-    // C : 32bit RGBA colour
 
-    guiSocket.Plot( X, Y, C)
-    guiSocket.FillRect( X, Y, Width, Height, C)
+    guiSocket.Screen(s int)       // Sets the screen width & height. Default 1024.
+    guiSocket.Address(s string)   // Set listening address + port. Default 127.0.0.1:8888
+
+    guiSocket.Launch()            // Run with current settings
+
+    guiSocket.Wipe()                    // Code 000 - Clears screen
+    guiSocket.Move(x, y)                // Code 001 - todo
+    guiSocket.Plot(x, y, C)             // Code 010 - Plot pixel at x,y in colour C
+    guiSocket.DrawTo(x, y, C)           // Code 011 - todo
+    guiSocket.FillRect(x, y, w, h, C)   // Code 100 - Fill rectanble at x,y of width/height w,h in colour C
+    guiSocket.Circle(x, y, r, C)        // Code 101 - Draw circle of raduis r at x,y in colour C
+    guiSocket.Image(x, y, w, h, Buff)   // Code 110 - todo
+    tbc                                 // Code 111 - reserved
+
+    // x,y,w,h  : are 16-bit unsigned ints / aka cartesian coords from 0-65535
+    // C        : is a 32bit colour expressed as 4 arguments of octets in the order RGBA
 
 
+#Payload
+
+    Byte 1 : 76543210
+             xxxxxccc   // where xxxxx is a 5-bit number of commands, and ccc us a 3-bit command code
+
+    Btye 2+ : Arguments as defined above. Note that 16-bit numbers are passed as high-byte, low-byte
+
+
+#Customisation
+
+The HTML viewer is parsed and served from ```GUIdisplay.html``` and can be easily customised.
+
+// add an extra byte to the protocol packet using 3 bits for the graphic command :
+// 0 - wipe screen
+// 1 - move x,y
+// 2 - plot x,y,c
+// 3 - drawTo x,y,c
+// 4 - rectangle x,y,width,height,c
+// 5 - circle x,y,r,c
+// 6 - imageWrite x,y,width,height,data
+// 7 - reserved (or maybe text x,y,c,text)
+
+// Then use the other 5bits for the number of graphic packets in this WebSocket payload. That will eliminate a huge amount of overhead (on top of each WebSocket frame, there will be TCP headers added, then IP headers, then Ethernet headers...)
+
+// OR could use the 5 bits as bit-flags. Say write method : XOR v Overwrite, Relative vs Absolute coords, etc...
+// We'd only need 1 bit for payload length. If its set, then look to next byte for payload length (2-255) otherwise assume single packet.

@@ -1,9 +1,13 @@
+/*
+ A multi-core Mandlebrot generator, that uses guiSocket as a front end display
+*/
+
 package main
 
 import (
 	"fmt"
 	"github.com/danhouldsworth/gui"
-	"os/exec"
+	"runtime"
 	"time"
 )
 
@@ -15,6 +19,12 @@ var (
 )
 
 func main() {
+	// -- Set & Announce multicore
+	cpu := runtime.NumCPU()
+	runtime.GOMAXPROCS(cpu)
+	fmt.Printf("\nThere are %d CPU cores available. Allocating %d CPU cores for our purposes.\n", cpu, runtime.GOMAXPROCS(-1))
+	// --
+
 	gui.Screen(screenSize)
 	// gui.Address("10.1.0.187:8888")
 	gui.Launch()
@@ -25,8 +35,7 @@ func main() {
 	progressTracker()
 
 	fmt.Println("\nDone!")
-	exec.Command("bash", "-c", "osascript -e 'tell app \"System Events\" to display dialog \"Hello World\"';say 'Hello, world!'").Run()
-	gui.Wipe()
+	// gui.Wipe()
 	fmt.Scanln() // Wait for key in case WebSocket buffering
 }
 

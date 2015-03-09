@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"runtime"
 	"strconv"
 	"strings"
 )
@@ -26,11 +25,6 @@ func Address(s string) {
 	IP = s
 }
 func Launch() {
-	// -- Set & Announce multicore
-	cpu := runtime.NumCPU()
-	runtime.GOMAXPROCS(cpu)
-	fmt.Printf("\nThere are %d CPU cores available. Allocating %d CPU cores for our purposes.\n", cpu, runtime.GOMAXPROCS(-1))
-	// --
 
 	// -- Listen & serve the GUIdisplay
 	fmt.Println("\nWaiting for Display : Please navigate to " + IP + " to commence....")
@@ -47,28 +41,28 @@ func Launch() {
 // -- Expose runtime API
 func Wipe() {
 	wsFrame := byte(1*128 + 1*2) // Simplified : FIN bit & Binary Type
-	wsPayload := byte(1)
-	guiCmd := byte(0 + 1<<3)
+	wsPayload := byte(1)         // 0 guiData bytes + 1 guiCmd byte
+	guiCmd := byte(0 + 1<<3)     // guiCmd code 0 + single packet
 	tcpConn.Write([]byte{wsFrame, wsPayload, guiCmd})
 }
 func Plot(x int, y int, r uint8, g uint8, b uint8, a uint8) {
 	wsFrame := byte(1*128 + 1*2) // Simplified : FIN bit & Binary Type
-	wsPayload := byte(9)
-	guiCmd := byte(2 + 1<<3)
+	wsPayload := byte(9)         // 8 guiData bytes + 1 guiCmd byte
+	guiCmd := byte(2 + 1<<3)     // guiCmd code 2 + single packet
 	guiData := []byte{hiByte(x), lowByte(x), hiByte(y), lowByte(y), r, g, b, a}
 	tcpConn.Write(append([]byte{wsFrame, wsPayload, guiCmd}, guiData...))
 }
 func FillRect(x int, y int, w int, h int, r uint8, g uint8, b uint8, a uint8) {
 	wsFrame := byte(1*128 + 1*2) // Simplified : FIN bit & Binary Type
-	wsPayload := byte(13)
-	guiCmd := byte(4 + 1<<3)
+	wsPayload := byte(13)        // 12 guiData bytes + 1 guiCmd byte
+	guiCmd := byte(4 + 1<<3)     // guiCmd code 4 + single packet
 	guiData := []byte{hiByte(x), lowByte(x), hiByte(y), lowByte(y), hiByte(w), lowByte(w), hiByte(h), lowByte(h), r, g, b, a}
 	tcpConn.Write(append([]byte{wsFrame, wsPayload, guiCmd}, guiData...))
 }
 func Circle(x int, y int, radius int, r uint8, g uint8, b uint8, a uint8) {
 	wsFrame := byte(1*128 + 1*2) // Simplified : FIN bit & Binary Type
-	wsPayload := byte(11)
-	guiCmd := byte(5 + 1<<3)
+	wsPayload := byte(11)        // 10 guiData bytes + 1 guiCmd byte
+	guiCmd := byte(5 + 1<<3)     // guiCmd code 5 + single packet
 	guiData := []byte{hiByte(x), lowByte(x), hiByte(y), lowByte(y), hiByte(radius), lowByte(radius), r, g, b, a}
 	tcpConn.Write(append([]byte{wsFrame, wsPayload, guiCmd}, guiData...))
 }
@@ -157,6 +151,6 @@ func init() {
 	html = string(htmlB)
 }
 
-const wsUpgrade = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nOrigin: null\r\nSec-WebSocket-Protocol: single-pixel-GUI-protocol\r\n"
+const wsUpgrade = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nOrigin: null\r\nSec-WebSocket-Protocol: guiSocket-protocol\r\n"
 
 // --
