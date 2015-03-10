@@ -67,21 +67,6 @@ func Circle(x int, y int, radius int, r uint8, g uint8, b uint8, a uint8) {
 	tcpConn.Write(append([]byte{wsFrame, wsPayload, guiCmd}, guiData...))
 }
 
-// add an extra byte to the protocol packet using 3 bits for the graphic command :
-// 0 - wipe screen
-// 1 - move x,y
-// 2 - plot x,y,c
-// 3 - drawTo x,y,c
-// 4 - rectangle x,y,width,height,c
-// 5 - circle x,y,r,c
-// 6 - imageWrite x,y,width,height,data
-// 7 - reserved (or maybe text x,y,c,text)
-
-// Then use the other 5bits for the number of graphic packets in this WebSocket payload. That will eliminate a huge amount of overhead (on top of each WebSocket frame, there will be TCP headers added, then IP headers, then Ethernet headers...)
-
-// OR could use the 5 bits as bit-flags. Say write method : XOR v Overwrite, Relative vs Absolute coords, etc...
-// We'd only need 1 bit for payload length. If its set, then look to next byte for payload length (2-255) otherwise assume single packet.
-
 // --
 
 func hashWithMagicKey(clientKey string) string {
@@ -137,6 +122,7 @@ func lowByte(i int) uint8 {
 func hiByte(i int) uint8 {
 	return uint8((i & 0xff00) >> 8)
 }
+
 func wsWrite(guiPacket [9]byte) {
 	wsFrame := []byte{byte(1*128 + 1*2), 9} // FIN bit + Binary Type
 	tcpConn.Write([]byte{wsFrame[0], wsFrame[1], guiPacket[0], guiPacket[1], guiPacket[2], guiPacket[3], guiPacket[4], guiPacket[5], guiPacket[6], guiPacket[7], guiPacket[8]})

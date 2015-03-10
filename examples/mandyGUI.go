@@ -13,8 +13,8 @@ import (
 
 // 256@1000 = 51518 packets, 1024@1000 = 496776, 1024@100000 = 497230, 1024@1<<20 =497230
 var (
-	screenSize = 1 << 9  // Stick to a power of 2, makes box division safer.
-	maxDwell   = 1 << 10 //
+	screenSize = 1 << 10 // Stick to a power of 2, makes box division safer.
+	maxDwell   = 1 << 11 //
 	area       = 0
 )
 
