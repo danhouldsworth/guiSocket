@@ -16,7 +16,7 @@
   // -- Initialise ArrayBuffers
   var imagedata = ctx.getImageData(0,0,canvas.width, canvas.height);
   var offset = function(x,y) {return (y * canvas.width + x) * 4;}
-  var counter = 0;
+  var wsPackets = 0, guiPlots = 0, guiRects = 0, pixels = 0;
   var updateQued = false;
   // var pixel = ctx.createImageData(1,1);
   // --
@@ -26,22 +26,25 @@
   ws.binaryType = 'arraybuffer';
   ws.onopen = function() {ws.send("GUI Ready");};
   ws.onmessage = function(e) {
-    counter++;
+    wsPackets++;
     var guiPacketData = new Uint8Array(e.data);
-    var cmd = guiPacketData[0] & 7;
-    var quantity = guiPacketData[0] >> 3;
+    var cmd = guiPacketData[0] & 7;       // 00000xxx = 3-bit GUIcommand  [0-7]
+    var quantity = guiPacketData[0] >> 3; // xxxxx000 = 5-bit # of cmds   [0-31]
     var packetSize = 0;
     switch (cmd) {
       case 0: // Wipe
         canvas.width = canvas.width;
         imagedata = ctx.getImageData(0,0,canvas.width, canvas.height);
-        console.log("Counter = " + counter);
+        console.log("guiWipe() recieved!!");
+        console.log("Listening for further guiCommands...");
         break;
       case 1: // Move
         break;
       case 2: // Plot
         packetSize = 8;
         for (var packetIndex = 0; packetIndex < quantity; packetIndex++){
+          guiPlots++;
+          pixels++;
           var xHi = guiPacketData[1 + packetIndex * packetSize];
           var xLo = guiPacketData[2 + packetIndex * packetSize];
           var yHi = guiPacketData[3 + packetIndex * packetSize];
@@ -63,6 +66,7 @@
       case 4: // FillRect
         packetSize = 12;
         for (var packetIndex = 0; packetIndex < quantity; packetIndex++){
+          guiRects++;
           var xHi = guiPacketData[1 + packetIndex * packetSize];
           var xLo = guiPacketData[2 + packetIndex * packetSize];
           var yHi = guiPacketData[3 + packetIndex * packetSize];
@@ -79,8 +83,9 @@
           var y = yHi * 256 + yLo;
           var w = wHi * 256 + wLo;
           var h = hHi * 256 + hLo;
-          for (var i = x; i <= x+w; i++){
-            for (var j = y; j <= y+h; j++) {
+          for (var i = x; i < x+w; i++){
+            for (var j = y; j < y+h; j++) {
+              pixels++;
               imagedata.data[offset(i,j) + 0] = R;
               imagedata.data[offset(i,j) + 1] = G;
               imagedata.data[offset(i,j) + 2] = B;
@@ -93,7 +98,15 @@
         break;
       case 6: // ImageWrite
         break;
-      case 7: // Reserved
+      case 7: // Terminate
+        ws.close();
+        console.log("Finished! GUI stats :");
+        console.log("wsPackets recieved = " + wsPackets);
+        console.log("guiPackets recieved = " + (guiRects + guiPlots));
+        console.log("guiRects executed = " + guiRects);
+        console.log("guiPlots executed = " + guiPlots);
+        console.log("pixels painted = " + pixels);
+        console.log("Socked Closed. We're done.");
         break;
       default:
     }

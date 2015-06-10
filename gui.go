@@ -45,6 +45,13 @@ func Wipe() {
 	guiCmd := byte(0 + 1<<3)     // guiCmd code 0 + single packet
 	tcpConn.Write([]byte{wsFrame, wsPayload, guiCmd})
 }
+func Close() {
+	wsFrame := byte(1*128 + 1*2) // Simplified : FIN bit & Binary Type
+	wsPayload := byte(1)         // 0 guiData bytes + 1 guiCmd byte
+	guiCmd := byte(7 + 1<<3)     // guiCmd code 0 + single packet
+	tcpConn.Write([]byte{wsFrame, wsPayload, guiCmd})
+	tcpConn.Close()
+}
 func Plot(x int, y int, r uint8, g uint8, b uint8, a uint8) {
 	wsFrame := byte(1*128 + 1*2) // Simplified : FIN bit & Binary Type
 	wsPayload := byte(9)         // 8 guiData bytes + 1 guiCmd byte

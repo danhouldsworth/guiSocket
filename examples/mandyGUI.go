@@ -35,8 +35,8 @@ func main() {
 	progressTracker()
 
 	fmt.Println("\nDone!")
-	// gui.Wipe()
-	fmt.Scanln() // Wait for key in case WebSocket buffering
+	gui.Close()
+	// fmt.Scanln() // Wait for key in case WebSocket buffering
 }
 
 func progressTracker() {
