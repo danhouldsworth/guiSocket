@@ -13,8 +13,8 @@ import (
 
 // 256@1000 = 51518 packets, 1024@1000 = 496776, 1024@100000 = 497230, 1024@1<<20 =497230
 var (
-	screenSize = 1 << 10 // Stick to a power of 2, makes box division safer.
-	maxDwell   = 1 << 11 //
+	screenSize = 2048  //1 << 10 // Stick to a power of 2, makes box division safer.
+	maxDwell   = 65536 //1 << 11 //
 	area       = 0
 )
 
@@ -26,7 +26,7 @@ func main() {
 	// --
 
 	gui.Screen(screenSize)
-	// gui.Address("10.1.0.187:8888")
+	gui.Address("127.0.0.1:8888")
 	gui.Launch()
 	gui.Wipe()
 	fmt.Printf("\nRunning the Mandy calc for Screen : %d x %d to depth of %d. Progress : xxx.x%%", screenSize, screenSize, maxDwell)

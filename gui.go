@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	tcpConn    net.Conn           // Can be global as we don't intend to server multiple connections
-	IP         = "127.0.0.1:8888" // Feel free to serve across Network / LAN
-	ScreenSize = 1024             // If we stick to a power of 2, integer division is easier
+	tcpConn    net.Conn          // Can be global as we don't intend to server multiple connections
+	IP         = "10.0.1.8:8888" //"127.0.0.1:8888" // Feel free to serve across Network / LAN
+	ScreenSize = 1024            // If we stick to a power of 2, integer division is easier
 	html       string
 )
 

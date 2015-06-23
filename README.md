@@ -1,3 +1,7 @@
+Superceded & ported to C as part of [helloLanguages](https://github.com/danhouldsworth/helloLanguages/tree/master/IO/Networking/GUIsocket) project.
+
+Below for reference and interest only...
+
 # guiSocket
 HTML5 Canvas over WebSocket as a GUI frontend for backend computation
 
